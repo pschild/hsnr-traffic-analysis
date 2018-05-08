@@ -2,11 +2,8 @@ import cv2
 import numpy as np
 import time
 
-startTime = time.time()
-lastFrameTime = startTime
-intervalInSec = 2.0
 frameCounter = 0
-lastLogTime = 0
+countedSeconds = 0
 
 cap = cv2.VideoCapture("../traffic_sim.mp4")
 videoFps = cap.get(cv2.CAP_PROP_FPS)
@@ -61,10 +58,10 @@ def resetStats():
 	max = 0.0
 	avg = 0.0
 
-def logToFile(sec, min, max, avg):
+def logToFile(countedSeconds, min, max, avg):
 	f = file('./carCounter.log','a')
 	timestamp = time.strftime("%Y%m%d-%H%M%S")
-	output = timestamp + ';' + str(sec) + ';' + str(min) + ';' + str(max) + ';' + str(avg) + "\r\n"
+	output = timestamp + ';' + str(countedSeconds) + ';' + str(min) + ';' + str(max) + ';' + str(avg) + "\r\n"
 	f.write(output)
 	f.close()
 
@@ -78,43 +75,34 @@ cv2.setMouseCallback('img', printMouseCoords)
 while 1:
 	ret, frame = cap.read()
 	frameCounter += 1
-
-	if (time.time() - lastFrameTime >= intervalInSec):
-		frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-		clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-		cl1 = clahe.apply(frame)
-
-		edges = cv2.Canny(frame,50,70)
-		edges = ~edges
-
-		blur = cv2.bilateralFilter(cv2.blur(edges,(21,21), 100),9,200,200)
-
-		_, threshold = cv2.threshold(blur,230,255,cv2.THRESH_BINARY)
-		t = cv2.bitwise_and(threshold,threshold,mask = area_mask)
-
-		free = np.count_nonzero(t)
-		capacity = 1 - float(free) / all
-
-		print "cap: {0}".format(capacity)
-		updateStats(capacity)
-		print "min={},max={},avg={},sum={},cnt={}".format(min,max,avg,sum,cnt)
-		#currentSecond = frameCounter / videoFps
-		#logToFile(currentSecond, capacity)
-
-		lastFrameTime = time.time()
-
-		cv2.imshow('img',t)
-
-	if (time.time() - lastLogTime >= 10.0):
-		currentSecond = frameCounter / videoFps
-		logToFile(currentSecond, min, max, avg)
-		print "logged: {},{},{},{}".format(currentSecond, min, max, avg)
+	# log every second
+	if (frameCounter % videoFps == 0):
+		countedSeconds += 1
+		logToFile(countedSeconds, min, max, avg)
 		resetStats()
-		lastLogTime = time.time()
+
+	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+	cl1 = clahe.apply(frame)
+
+	edges = cv2.Canny(frame,50,70)
+	edges = ~edges
+
+	blur = cv2.bilateralFilter(cv2.blur(edges,(21,21), 100),9,200,200)
+
+	_, threshold = cv2.threshold(blur,230,255,cv2.THRESH_BINARY)
+	t = cv2.bitwise_and(threshold,threshold,mask = area_mask)
+
+	free = np.count_nonzero(t)
+	capacity = 1 - float(free) / all
+
+	#print "cap: {0}".format(capacity)
+	updateStats(capacity)
+	#print "min={},max={},avg={},sum={},cnt={}".format(min,max,avg,sum,cnt)
 
 	#cv2.fillPoly(frame, [AREA_PTS], (255, 0, 0))
 
-	#cv2.imshow('img',frame)
+	cv2.imshow('img',frame)
 	k = cv2.waitKey(30) & 0xff
 	if k == 27:
 		break
