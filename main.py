@@ -6,6 +6,7 @@ startTime = time.time()
 lastFrameTime = startTime
 intervalInSec = 2.0
 frameCounter = 0
+lastLogTime = 0
 
 cap = cv2.VideoCapture("../traffic_sim.mp4")
 videoFps = cap.get(cv2.CAP_PROP_FPS)
@@ -16,10 +17,54 @@ AREA_PTS = np.array([[268,354], [519,436], [403,632], [15,632]])
 area_mask = cv2.fillPoly(base, [AREA_PTS], (255, 255, 255))[:, :, 0]
 all = np.count_nonzero(area_mask)
 
-def logToFile(second, capacity):
+# temporary variables
+global min
+global max
+global avg
+global cnt
+global sum
+
+min = 1.0
+max = 0.0
+avg = 0.0
+cnt = 0
+sum = 0
+
+def updateStats(capacity):
+	global cnt
+	global sum
+	global min
+	global max
+	global avg
+
+	cnt += 1
+	sum += capacity
+
+	if (capacity < min):
+		min = capacity
+
+	if (capacity > max):
+		max = capacity
+
+	avg = sum / cnt
+
+def resetStats():
+	global cnt
+	global sum
+	global min
+	global max
+	global avg
+
+	cnt = 0
+	sum = 0
+	min = 1.0
+	max = 0.0
+	avg = 0.0
+
+def logToFile(sec, min, max, avg):
 	f = file('./carCounter.log','a')
 	timestamp = time.strftime("%Y%m%d-%H%M%S")
-	output = timestamp + ';' + str(second) + ';' + str(capacity) + "\r\n"
+	output = timestamp + ';' + str(sec) + ';' + str(min) + ';' + str(max) + ';' + str(avg) + "\r\n"
 	f.write(output)
 	f.close()
 
@@ -51,12 +96,21 @@ while 1:
 		capacity = 1 - float(free) / all
 
 		print "cap: {0}".format(capacity)
-		currentSecond = frameCounter / videoFps
+		updateStats(capacity)
+		print "min={},max={},avg={},sum={},cnt={}".format(min,max,avg,sum,cnt)
+		#currentSecond = frameCounter / videoFps
 		#logToFile(currentSecond, capacity)
 
 		lastFrameTime = time.time()
 
 		cv2.imshow('img',t)
+
+	if (time.time() - lastLogTime >= 10.0):
+		currentSecond = frameCounter / videoFps
+		logToFile(currentSecond, min, max, avg)
+		print "logged: {},{},{},{}".format(currentSecond, min, max, avg)
+		resetStats()
+		lastLogTime = time.time()
 
 	#cv2.fillPoly(frame, [AREA_PTS], (255, 0, 0))
 
