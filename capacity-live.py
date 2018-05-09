@@ -1,17 +1,17 @@
 import cv2
 import numpy as np
 import time
+from RepeatedTimer import RepeatedTimer
 from imutils.video.pivideostream import PiVideoStream
 
 frameCounter = 0
 countedSeconds = 0
-logInterval = 1 #seconds
+logInterval = 5 #seconds
 
-videoFps = 25
-cap = PiVideoStream(framerate=videoFps).start()
+cap = PiVideoStream(resolution=(640,480)).start()
 time.sleep(2.0)
 
-base = np.zeros((240,320) + (3,), dtype='uint8')
+base = np.zeros((480,640) + (3,), dtype='uint8')
 AREA_PTS = np.array([[0,0], [100,0], [100,100]])
 area_mask = cv2.fillPoly(base, [AREA_PTS], (255, 255, 255))[:, :, 0]
 all = np.count_nonzero(area_mask)
@@ -56,10 +56,10 @@ def resetAverage():
 	sum = 0
 	avg = 0.0
 
-def logToFile(countedSeconds, min, max, avg):
+def logToFile(min, max, avg):
 	f = file('./carCounter.log','a')
 	timestamp = time.strftime("%Y%m%d-%H%M%S")
-	output = timestamp + ';' + str(countedSeconds) + ';' + str(min) + ';' + str(max) + ';' + str(avg) + "\r\n"
+	output = timestamp + ';' + str(min) + ';' + str(max) + ';' + str(avg) + "\r\n"
 	f.write(output)
 	f.close()
 
@@ -70,15 +70,19 @@ def printMouseCoords(event, x, y, flags, param):
 cv2.namedWindow('img')
 cv2.setMouseCallback('img', printMouseCoords)
 
+def collect():
+	global min
+	global max
+	global avg
+
+	print "logged@{}, min={}, max={}, avg={}".format(time.time(), min, max, avg)
+	logToFile(min, max, avg)
+	resetAverage()
+
+rt = RepeatedTimer(logInterval, collect)
+
 while 1:
 	frame = cap.read()
-	frameCounter += 1
-	# log every second
-	if (frameCounter % (videoFps * logInterval) == 0):
-		countedSeconds += logInterval
-		logToFile(countedSeconds, min, max, avg)
-		print "logged@{}".format(time.time())
-		resetAverage()
 
 	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
@@ -99,12 +103,13 @@ while 1:
 	updateStats(capacity)
 	#print "min={},max={},avg={},sum={},cnt={}".format(min,max,avg,sum,cnt)
 
-	#cv2.fillPoly(frame, [AREA_PTS], (255, 0, 0))
+	cv2.fillPoly(frame, [AREA_PTS], (255, 0, 0))
 
-	#cv2.imshow('img',frame)
+	cv2.imshow('img',t)
 	k = cv2.waitKey(30) & 0xff
 	if k == 27:
 		break
 
 cv2.destroyAllWindows()
 cap.stop()
+rt.stop()
