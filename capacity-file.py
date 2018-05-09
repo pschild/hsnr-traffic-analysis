@@ -4,6 +4,7 @@ import time
 
 frameCounter = 0
 countedSeconds = 0
+logInterval = 5 #seconds
 
 cap = cv2.VideoCapture("../traffic_sim.mp4")
 videoFps = cap.get(cv2.CAP_PROP_FPS)
@@ -76,9 +77,10 @@ while 1:
 	ret, frame = cap.read()
 	frameCounter += 1
 	# log every second
-	if (frameCounter % videoFps == 0):
-		countedSeconds += 1
+	if (frameCounter % (videoFps * logInterval) == 0):
+		countedSeconds += logInterval
 		logToFile(countedSeconds, min, max, avg)
+		print "logged"
 		resetStats()
 
 	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
