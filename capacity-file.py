@@ -4,7 +4,7 @@ import time
 
 frameCounter = 0
 countedSeconds = 0
-logInterval = 5 #seconds
+logInterval = 1 #seconds
 
 cap = cv2.VideoCapture("../traffic_sim.mp4")
 videoFps = cap.get(cv2.CAP_PROP_FPS)
@@ -46,17 +46,13 @@ def updateStats(capacity):
 
 	avg = sum / cnt
 
-def resetStats():
+def resetAverage():
 	global cnt
 	global sum
-	global min
-	global max
 	global avg
 
 	cnt = 0
 	sum = 0
-	min = 1.0
-	max = 0.0
 	avg = 0.0
 
 def logToFile(countedSeconds, min, max, avg):
@@ -70,8 +66,8 @@ def printMouseCoords(event, x, y, flags, param):
 	if event == cv2.EVENT_LBUTTONDBLCLK:
 		print "Mouse at ({},{})".format(x, y)
 
-cv2.namedWindow('img')
-cv2.setMouseCallback('img', printMouseCoords)
+#cv2.namedWindow('img')
+#cv2.setMouseCallback('img', printMouseCoords)
 
 while 1:
 	ret, frame = cap.read()
@@ -80,8 +76,8 @@ while 1:
 	if (frameCounter % (videoFps * logInterval) == 0):
 		countedSeconds += logInterval
 		logToFile(countedSeconds, min, max, avg)
-		print "logged"
-		resetStats()
+		print "logged@{}".format(time.time())
+		resetAverage()
 
 	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
@@ -104,10 +100,10 @@ while 1:
 
 	#cv2.fillPoly(frame, [AREA_PTS], (255, 0, 0))
 
-	cv2.imshow('img',frame)
+	#cv2.imshow('img',frame)
 	k = cv2.waitKey(30) & 0xff
 	if k == 27:
 		break
 
 cap.release()
-cv2.destroyAllWindows()
+#cv2.destroyAllWindows()
