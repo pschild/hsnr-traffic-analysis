@@ -8,6 +8,9 @@ frameCounter = 0
 countedSeconds = 0
 logInterval = 5 #seconds
 
+global starttime
+starttime = time.strftime("%Y%m%d-%H%M%S")
+
 cap = PiVideoStream(resolution=(640,480)).start()
 time.sleep(2.0)
 
@@ -57,7 +60,9 @@ def resetAverage():
 	avg = 0.0
 
 def logToFile(min, max, avg):
-	f = file('./carCounter.log','a')
+	global starttime
+
+	f = file('./cap-live-'+starttime+'.log','a')
 	timestamp = time.strftime("%Y%m%d-%H%M%S")
 	output = timestamp + ';' + str(min) + ';' + str(max) + ';' + str(avg) + "\r\n"
 	f.write(output)
