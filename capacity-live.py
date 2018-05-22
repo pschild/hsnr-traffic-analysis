@@ -15,7 +15,8 @@ cap = PiVideoStream(resolution=(640,480)).start()
 time.sleep(2.0)
 
 base = np.zeros((480,640) + (3,), dtype='uint8')
-AREA_PTS = np.array([[0,0], [100,0], [100,100]])
+AREA_PTS = np.array([[215,72], [379,94], [376,250], [196,228]])
+
 area_mask = cv2.fillPoly(base, [AREA_PTS], (255, 255, 255))[:, :, 0]
 all = np.count_nonzero(area_mask)
 
@@ -72,8 +73,8 @@ def printMouseCoords(event, x, y, flags, param):
 	if event == cv2.EVENT_LBUTTONDBLCLK:
 		print "Mouse at ({},{})".format(x, y)
 
-cv2.namedWindow('img')
-cv2.setMouseCallback('img', printMouseCoords)
+cv2.namedWindow('img1')
+cv2.setMouseCallback('img1', printMouseCoords)
 
 def collect():
 	global min
@@ -89,11 +90,11 @@ rt = RepeatedTimer(logInterval, collect)
 while 1:
 	frame = cap.read()
 
-	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-	cl1 = clahe.apply(frame)
+	cl1 = clahe.apply(gray)
 
-	edges = cv2.Canny(frame,50,70)
+	edges = cv2.Canny(gray,50,70)
 	edges = ~edges
 
 	blur = cv2.bilateralFilter(cv2.blur(edges,(21,21), 100),9,200,200)
@@ -108,9 +109,10 @@ while 1:
 	updateStats(capacity)
 	#print "min={},max={},avg={},sum={},cnt={}".format(min,max,avg,sum,cnt)
 
-	cv2.fillPoly(frame, [AREA_PTS], (255, 0, 0))
+	#cv2.fillPoly(frame, [AREA_PTS], (255, 0, 0))
 
 	cv2.imshow('img',t)
+	cv2.imshow('img1',frame)
 	k = cv2.waitKey(30) & 0xff
 	if k == 27:
 		break
