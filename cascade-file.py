@@ -19,7 +19,7 @@ videoFps = cap.get(cv2.CAP_PROP_FPS)
 
 def logToFile(second, areaId, carCount):
 	f = file('./carCounter.log','a')
-	timestamp = time.strftime("%Y%m%d-%H%M%S")
+	timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
 	output = timestamp + ';' + str(second) + ';' + str(areaId) + ';' + str(carCount) + "\r\n"
 	f.write(output)
 	f.close()

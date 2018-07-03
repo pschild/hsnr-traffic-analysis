@@ -7,7 +7,7 @@ countedSeconds = 0
 logInterval = 5 #seconds
 
 global starttime
-starttime = time.strftime("%Y%m%d-%H%M%S")
+starttime = time.strftime("%Y-%m-%d_%H-%M-%S")
 
 #cap = cv2.VideoCapture("../traffic_sim.mp4")
 #cap = cv2.VideoCapture("../autobahn.mp4")
@@ -66,7 +66,7 @@ def logToFile(countedSeconds, min, max, avg):
 	global starttime
 
 	f = file('./cap-file-'+starttime+'.log','a')
-	timestamp = time.strftime("%Y%m%d-%H%M%S")
+	timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
 	output = timestamp + ';' + str(countedSeconds) + ';' + str(min) + ';' + str(max) + ';' + str(avg) + "\r\n"
 	f.write(output)
 	f.close()
