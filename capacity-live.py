@@ -15,7 +15,7 @@ cap = PiVideoStream(resolution=(640,480)).start()
 time.sleep(2.0)
 
 base = np.zeros((480,640) + (3,), dtype='uint8')
-AREA_PTS = np.array([[215,72], [379,94], [376,250], [196,228]])
+AREA_PTS = np.array([[252,213], [238,238], [626,365], [632,289]])
 
 area_mask = cv2.fillPoly(base, [AREA_PTS], (255, 255, 255))[:, :, 0]
 all = np.count_nonzero(area_mask)
