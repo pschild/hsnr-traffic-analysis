@@ -1,0 +1,184 @@
+<html>
+  <head>
+    <title>Counter</title>
+  </head>
+  <body>
+
+    <div id="time-info"></div>
+    <video id="video" width="640" height="480">
+      <source src="C:\Users\Philippe\Desktop\Semester_3\1h-z232-233-20180713-120001.mp4" type="video/mp4">
+    </video>
+
+    <div>
+      <button id="count-btn" disabled>zählen (Tastatur: Space)</button>
+      <button id="start-btn">Play</button>
+      <button id="pause-btn" disabled>Pause</button>
+      <button id="stop-btn" disabled>Analyze</button>
+      <button id="reset-btn">Reset</button>
+    </div>
+    <div>
+      Wiedergabegeschw.:<input type="range" min="0.5" max="5" value="1" step="0.5" id="playbackRate"><span id="speed-label">1x</span> (Tastatur: Links/Rechts)
+    </div>
+    <div>
+        zu Sekunde <input type="text" id="secs" placeholder="120"> <button id="vorspulen-btn">springen</button>
+      </div>
+    <div style="display: flex">
+      <div id="log" style="width: 50%"></div>
+      <div id="processed-log"></div>
+    </div>
+
+    <script>
+      var TIMEINFO = document.getElementById('time-info');
+      var VID = document.getElementById('video');
+      VID.playbackRate = 1;
+
+      VID.addEventListener('timeupdate', (event) => {
+        var ct = VID.currentTime;
+        var ct_h = Math.floor(ct / 3600);
+        var ct_m = Math.floor((ct - ct_h * 3600) / 60);
+        var ct_s = Math.floor(ct - ct_m * 60 - ct_h  * 3600);
+        var ct_label = `${ct_h < 10 ? '0' + ct_h : ct_h}:${ct_m < 10 ? '0' + ct_m : ct_m}:${ct_s < 10 ? '0' + ct_s : ct_s}`;
+
+        var duration = VID.duration;
+        var duration_h = Math.floor(duration / 3600);
+        var duration_m = Math.floor((duration - duration_h * 3600) / 60);
+        var duration_s = Math.floor(duration - duration_m * 60 - duration_h  * 3600);
+        var duration_label = `${duration_h < 10 ? '0' + duration_h : duration_h}:${duration_m < 10 ? '0' + duration_m : duration_m}:${duration_s < 10 ? '0' + duration_s : duration_s}`;
+
+        TIMEINFO.innerText = `${ct_label} / ${duration_label} (${Math.floor(ct/duration * 100)}%)`;
+      });
+
+      var SLIDER = document.getElementById('playbackRate');
+      var SPEEDLABEL = document.getElementById('speed-label');
+      SLIDER.addEventListener('change', (event) => {
+        SPEEDLABEL.innerText = SLIDER.value + 'x';
+        VID.playbackRate = SLIDER.value;
+      });
+
+      document.body.addEventListener('keydown', (event) => {
+        if (event.code == 'Space') {
+          event.stopPropagation();
+          event.preventDefault();
+
+          count();
+          log();
+        } else if (event.code == 'ArrowRight') {
+          SLIDER.value = +SLIDER.value + 0.5;
+          SLIDER.dispatchEvent(new Event('change'));
+        } else if (event.code == 'ArrowLeft') {
+          SLIDER.value = +SLIDER.value - 0.5;
+          SLIDER.dispatchEvent(new Event('change'));
+        }
+      });
+
+      document.getElementById('count-btn').addEventListener('click', () => {
+        count();
+        log();
+      });
+
+      document.getElementById('start-btn').addEventListener('click', (e) => {
+        start();
+        e.target.disabled = true;
+        document.getElementById('count-btn').disabled = false;
+        document.getElementById('stop-btn').disabled = false;
+        document.getElementById('pause-btn').disabled = false;
+      });
+
+      document.getElementById('pause-btn').addEventListener('click', (e) => {
+        pause();
+        e.target.disabled = true;
+        document.getElementById('count-btn').disabled = true;
+        document.getElementById('start-btn').disabled = false;
+        document.getElementById('stop-btn').disabled = false;
+      });
+
+      document.getElementById('stop-btn').addEventListener('click', (e) => {
+        analyze();
+        e.target.disabled = true;
+        document.getElementById('count-btn').disabled = true;
+        document.getElementById('start-btn').disabled = false;
+        document.getElementById('pause-btn').disabled = true;
+      });
+
+      document.getElementById('reset-btn').addEventListener('click', (e) => {
+        reset();
+        document.getElementById('count-btn').disabled = true;
+        document.getElementById('start-btn').disabled = false;
+        document.getElementById('pause-btn').disabled = true;
+        document.getElementById('stop-btn').disabled = true;
+      });
+
+      document.getElementById('vorspulen-btn').addEventListener('click', () => {
+        VID.currentTime = document.getElementById('secs').value || 0;
+      });
+
+      var STARTED = false;
+      var COUNTS = [];
+      var logContainer = document.getElementById('log');
+      var processedLogContainer = document.getElementById('processed-log');
+
+      function reset() {
+        processedLogContainer.innerHTML = '';
+        logContainer.innerHTML = '';
+        COUNTS = [];
+        VID.pause();
+        VID.currentTime = 0;
+      }
+
+      function start() {
+        STARTED = true;
+        VID.play();
+      }
+
+      function pause() {
+        VID.pause();
+        STARTED = false;
+      }
+
+      function analyze() {
+        VID.pause();
+        STARTED = false;
+
+        if (COUNTS && COUNTS.length) {
+          processedLogContainer.innerHTML = '';
+          var lastItem = COUNTS[COUNTS.length - 1];
+          var result = [];
+          for (let i = 0; i <= lastItem.second; i += 5) {
+            var filtered = COUNTS.filter(item => item.second >= i && item.second < i + 5);
+            var sum = 0;
+            filtered.forEach(item => {
+              sum += item.count;
+            });
+            //console.log(i + '-' + (i+5) + ' => ' + sum);
+            result.push({toSecond: i + 5, sum: sum});
+            processedLogContainer.innerHTML += `${i}s bis ${i+5}s: ${sum}<br>`;
+          }
+          localStorage.setItem(`hsnr-traffic-analysis-${new Date().getTime()}`, JSON.stringify(result));
+        }
+      }
+
+      function count() {
+        if (!STARTED) {
+          return;
+        }
+        var currentTime = Math.floor(VID.currentTime);
+        var item = COUNTS.find(i => i.second == currentTime);
+        if (item) {
+          item.count++;
+        } else {
+          COUNTS.push({second: currentTime, count: 1});
+        }
+      }
+
+      function log() {
+        if (!STARTED) {
+          return;
+        }
+        logContainer.innerHTML = '';
+        COUNTS.forEach(item => {
+          logContainer.innerHTML += `${item.second}s => ${item.count} Auto(s)<br>`;
+        });
+      }
+    </script>
+  </body>
+</html>
