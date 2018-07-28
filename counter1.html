@@ -14,9 +14,10 @@
 
     <script>
       document.body.addEventListener('keydown', (event) => {
-        event.stopPropagation();
-        event.preventDefault();
         if (event.code == 'Space' || event.code == 'Enter') {
+          event.stopPropagation();
+          event.preventDefault();
+
           count();
           log();
         }
