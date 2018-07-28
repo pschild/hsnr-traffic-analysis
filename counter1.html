@@ -13,6 +13,15 @@
     </div>
 
     <script>
+      document.body.addEventListener('keydown', (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        if (event.code == 'Space' || event.code == 'Enter') {
+          count();
+          log();
+        }
+      });
+
       document.getElementById('count-btn').addEventListener('click', () => {
         count();
         log();
@@ -32,6 +41,7 @@
         document.getElementById('start-btn').disabled = false;
       });
 
+      var STARTED = false;
       var INTERVAL;
       var SECONDS;
       var COUNTS;
@@ -41,6 +51,7 @@
       function start() {
         processedLogContainer.innerHTML = '';
 
+        STARTED = true;
         SECONDS = 0;
         COUNTS = [];
         INTERVAL = setInterval(() => {
@@ -50,6 +61,7 @@
       }
 
       function stop() {
+        STARTED = false;
         clearInterval(INTERVAL);
         document.getElementById('time').innerText = 0;
 
@@ -71,6 +83,9 @@
       }
 
       function count() {
+        if (!STARTED) {
+          return;
+        }
         var item = COUNTS.find(i => i.second == SECONDS);
         if (item) {
           item.count++;
@@ -80,6 +95,9 @@
       }
 
       function log() {
+        if (!STARTED) {
+          return;
+        }
         logContainer.innerHTML = '';
         COUNTS.forEach(item => {
           logContainer.innerHTML += `${item.second}s => ${item.count} Auto(s)<br>`;
