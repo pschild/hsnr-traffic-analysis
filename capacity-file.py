@@ -24,13 +24,11 @@ all = np.count_nonzero(area_mask)
 
 # temporary variables
 global min
-global max
 global avg
 global cnt
 global sum
 
 min = 1.0
-max = 0.0
 avg = 0.0
 cnt = 0
 sum = 0
@@ -39,7 +37,6 @@ def updateStats(capacity):
 	global cnt
 	global sum
 	global min
-	global max
 	global avg
 
 	cnt += 1
@@ -47,9 +44,6 @@ def updateStats(capacity):
 
 	if (capacity < min):
 		min = capacity
-
-	if (capacity > max):
-		max = capacity
 
 	avg = sum / cnt
 
@@ -62,12 +56,12 @@ def resetAverage():
 	sum = 0
 	avg = 0.0
 
-def logToFile(countedSeconds, min, max, avg):
+def logToFile(countedSeconds, min, avg):
 	global starttime
 
 	f = file('./cap-file-'+starttime+'.log','a')
 	timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-	output = timestamp + ';' + str(countedSeconds) + ';' + str(min) + ';' + str(max) + ';' + str(avg) + "\r\n"
+	output = timestamp + ';' + str(countedSeconds) + ';' + str(min) + ';1;' + str(avg) + "\r\n"
 	f.write(output)
 	f.close()
 
@@ -84,8 +78,8 @@ while 1:
 	# log depending on interval
 	if (frameCounter % (videoFps * logInterval) == 0):
 		countedSeconds += logInterval
-		logToFile(countedSeconds, min, max, avg)
-		print "second={}, min={}, max={}, avg={}".format(countedSeconds, min, max, avg)
+		logToFile(countedSeconds, min, avg)
+		print "second={}, min={}, avg={}".format(countedSeconds, min, avg)
 		resetAverage()
 
 	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -105,7 +99,7 @@ while 1:
 
 	#print "cap: {0}".format(capacity)
 	updateStats(capacity)
-	#print "min={},max={},avg={},sum={},cnt={}".format(min,max,avg,sum,cnt)
+	#print "min={},avg={},sum={},cnt={}".format(min,avg,sum,cnt)
 
 	cv2.fillPoly(frame, [AREA_PTS], (255, 0, 0))
 

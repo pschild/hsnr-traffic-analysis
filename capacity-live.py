@@ -22,13 +22,11 @@ all = np.count_nonzero(area_mask)
 
 # temporary variables
 global min
-global max
 global avg
 global cnt
 global sum
 
 min = 1.0
-max = 0.0
 avg = 0.0
 cnt = 0
 sum = 0
@@ -37,7 +35,6 @@ def updateStats(capacity):
 	global cnt
 	global sum
 	global min
-	global max
 	global avg
 
 	cnt += 1
@@ -45,9 +42,6 @@ def updateStats(capacity):
 
 	if (capacity < min):
 		min = capacity
-
-	if (capacity > max):
-		max = capacity
 
 	avg = sum / cnt
 
@@ -60,12 +54,12 @@ def resetAverage():
 	sum = 0
 	avg = 0.0
 
-def logToFile(min, max, avg):
+def logToFile(min, avg):
 	global starttime
 
 	f = file('./cap-live-'+starttime+'.log','a')
 	timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-	output = timestamp + ';' + str(min) + ';' + str(max) + ';' + str(avg) + "\r\n"
+	output = timestamp + ';' + str(min) + ';1;' + str(avg) + "\r\n"
 	f.write(output)
 	f.close()
 
@@ -78,11 +72,10 @@ cv2.setMouseCallback('img1', printMouseCoords)
 
 def collect():
 	global min
-	global max
 	global avg
 
-	print "logged@{}, min={}, max={}, avg={}".format(time.time(), min, max, avg)
-	logToFile(min, max, avg)
+	print "logged@{}, min={}, avg={}".format(time.time(), min, avg)
+	logToFile(min, avg)
 	resetAverage()
 
 rt = RepeatedTimer(logInterval, collect)
@@ -107,7 +100,7 @@ while 1:
 
 	#print "cap: {0}".format(capacity)
 	updateStats(capacity)
-	#print "min={},max={},avg={},sum={},cnt={}".format(min,max,avg,sum,cnt)
+	#print "min={},avg={},sum={},cnt={}".format(min,avg,sum,cnt)
 
 	#cv2.fillPoly(frame, [AREA_PTS], (255, 0, 0))
 
