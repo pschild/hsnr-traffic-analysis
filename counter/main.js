@@ -176,6 +176,6 @@ function log() {
   }
   logContainer.innerHTML = '';
   COUNTS.forEach(item => {
-    logContainer.innerHTML += `${item.second}s => ${item.count} Fahrzeuge<br>`;
+    logContainer.innerHTML += `${item.second}s => ${item.count} Fahrzeug(e)<br>`;
   });
 }
