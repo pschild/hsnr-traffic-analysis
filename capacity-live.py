@@ -99,9 +99,6 @@ while 1:
 
 	# 2) convert current frame to gray
 	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	# ???
-	#clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-	#cl1 = clahe.apply(gray)
 
 	# 3) do edge detection on grayscaled frame
 	edges = cv2.Canny(gray,50,70)
