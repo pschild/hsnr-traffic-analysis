@@ -1,0 +1,36 @@
+<html>
+  <head>
+    <title>Counter</title>
+  </head>
+  <body>
+
+    <div>
+      MP4-Datei auswählen: <input type="file" id="video-file" accept="video/mp4" />
+    </div>
+
+    <div id="time-info"></div>
+    <video id="video" width="640" height="480">
+      <source id="video-source" type="video/mp4">
+    </video>
+
+    <div>
+      <button id="count-btn" disabled>zählen (Tastatur: Space)</button>
+      <button id="start-btn">Play</button>
+      <button id="pause-btn" disabled>Pause</button>
+      <button id="analyze-btn" disabled>Analyze</button>
+      <button id="reset-btn">Reset</button>
+    </div>
+    <div>
+      Wiedergabegeschw.:<input type="range" min="0.5" max="5" value="1" step="0.5" id="playbackRate"><span id="speed-label">1x</span> (Tastatur: Links/Rechts)
+    </div>
+    <div>
+        zu Sekunde <input type="text" id="secs" placeholder="120"> <button id="spool-btn">springen</button>
+      </div>
+    <div style="display: flex">
+      <div id="log" style="width: 50%"></div>
+      <div id="processed-log"></div>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+</html>
