@@ -4,7 +4,8 @@ import time
 from RepeatedTimer import RepeatedTimer
 from imutils.video.pivideostream import PiVideoStream
 
-logInterval = 5 # in seconds
+# interval (in seconds)
+logInterval = 5
 
 # time when script started
 global starttime

@@ -4,7 +4,8 @@ import time
 
 frameCounter = 0
 countedSeconds = 0
-logInterval = 5 # in seconds
+# interval (in seconds)
+logInterval = 5
 
 # time when script started
 global starttime
@@ -87,7 +88,11 @@ while 1:
 	ret, frame = cap.read()
 	frameCounter += 1
 
-	# log depending on interval
+	# seconds cannot be tracked in realtime, so we will need to decide when to log depending on the video's fps
+	# and frameCounter
+	# EXAMPLE:
+	# fps = 25.0, logInterval = 5 seconds
+	# => values will be logged at frame No. 125, 250, 375, 500, ...
 	if (frameCounter % (videoFps * logInterval) == 0):
 		countedSeconds += logInterval
 		logToFile(countedSeconds, min, avg)
