@@ -4,22 +4,24 @@ import time
 
 frameCounter = 0
 countedSeconds = 0
-logInterval = 5 #seconds
+logInterval = 5 # in seconds
 
+# time when script started
 global starttime
 starttime = time.strftime("%Y-%m-%d_%H-%M-%S")
 
-#cap = cv2.VideoCapture("../traffic_sim.mp4")
-#cap = cv2.VideoCapture("../autobahn.mp4")
+# load file
 cap = cv2.VideoCapture("../traffic_jam1.mp4")
+# get fps of loaded video file
 videoFps = cap.get(cv2.CAP_PROP_FPS)
 
-base = np.zeros((480,640) + (3,), dtype='uint8') #autobahn.mp4, traffic_jam.mp4
-#base = np.zeros((638,1280) + (3,), dtype='uint8') #traffic_sim.mp4
-#AREA_PTS = np.array([[167,130], [261,130], [331,170], [213,170]]) #autobahn.mp4
-#AREA_PTS = np.array([[268,354], [519,436], [403,632], [15,632]]) #traffic_sim.mp4
-AREA_PTS = np.array([[100,60], [250,60], [250,150], [100,150]]) #traffic_jam.mp4
+# create a zero for each pixel (according to video size/resolution)
+base = np.zeros((480,640) + (3,), dtype='uint8')
+# define polygon in which the capacity should be calculated
+AREA_PTS = np.array([[100,60], [250,60], [250,150], [100,150]])
+# create a mask, based on AREA_PTS, and fill with white pixels
 area_mask = cv2.fillPoly(base, [AREA_PTS], (255, 255, 255))[:, :, 0]
+# count the number of non-zero values
 all = np.count_nonzero(area_mask)
 
 # temporary variables
@@ -28,11 +30,13 @@ global avg
 global cnt
 global sum
 
+# initialization
 min = 1.0
 avg = 0.0
 cnt = 0
 sum = 0
 
+# function to update variables
 def updateStats(capacity):
 	global cnt
 	global sum
@@ -42,12 +46,14 @@ def updateStats(capacity):
 	cnt += 1
 	sum += capacity
 
+	# set new minimum value, if new value is less than old minimum
 	if (capacity < min):
 		min = capacity
 
 	avg = sum / cnt
 
-def resetAverage():
+# function to reset values
+def resetValues():
 	global cnt
 	global sum
 	global avg
@@ -56,6 +62,7 @@ def resetAverage():
 	sum = 0
 	avg = 0.0
 
+# function to write data to file
 def logToFile(countedSeconds, min, avg):
 	global starttime
 
@@ -65,45 +72,61 @@ def logToFile(countedSeconds, min, avg):
 	f.write(output)
 	f.close()
 
+# function to log mouse coords to console
 def printMouseCoords(event, x, y, flags, param):
 	if event == cv2.EVENT_LBUTTONDBLCLK:
 		print "Mouse at ({},{})".format(x, y)
 
-cv2.namedWindow('img')
-cv2.setMouseCallback('img', printMouseCoords)
+# prepare windows for opencv and mouse listener
+cv2.namedWindow('original')
+cv2.setMouseCallback('original', printMouseCoords)
 
+# infinite loop
 while 1:
+	# 1) read the next frame
 	ret, frame = cap.read()
 	frameCounter += 1
+
 	# log depending on interval
 	if (frameCounter % (videoFps * logInterval) == 0):
 		countedSeconds += logInterval
 		logToFile(countedSeconds, min, avg)
 		print "second={}, min={}, avg={}".format(countedSeconds, min, avg)
-		resetAverage()
+		resetValues()
 
+	# 2) convert current frame to gray
 	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-	cl1 = clahe.apply(frame)
+	# ???
+	#clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+	#cl1 = clahe.apply(frame)
 
+	# 3) do edge detection on grayscaled frame
 	edges = cv2.Canny(frame,50,70)
 	edges = ~edges
 
+	# 4) blur detected edges
 	blur = cv2.bilateralFilter(cv2.blur(edges,(21,21), 100),9,200,200)
 
+	# 5) apply threshold to frame: depending on pixel value, an array of 1s and 0s is created
 	_, threshold = cv2.threshold(blur,230,255,cv2.THRESH_BINARY)
+	# only apply to masked area
 	t = cv2.bitwise_and(threshold,threshold,mask = area_mask)
 
+	# count white pixels within defined polygon/mask
 	free = np.count_nonzero(t)
+	# calculate capacity in %
 	capacity = 1 - float(free) / all
 
-	#print "cap: {0}".format(capacity)
+	# update variables
 	updateStats(capacity)
-	#print "min={},avg={},sum={},cnt={}".format(min,avg,sum,cnt)
 
-	cv2.fillPoly(frame, [AREA_PTS], (255, 0, 0))
+	# remove comment to visualize counting area
+	#cv2.fillPoly(frame, [AREA_PTS], (255, 0, 0))
 
-	cv2.imshow('img',frame)
+	# show original frame
+	cv2.imshow('original',frame)
+
+	# wait for "ESC" being pressed to leave infinite loop
 	k = cv2.waitKey(30) & 0xff
 	if k == 27:
 		break
