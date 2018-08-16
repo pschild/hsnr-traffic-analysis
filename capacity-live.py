@@ -101,14 +101,18 @@ while 1:
 	# 2) convert current frame to gray
 	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-	# 3) do edge detection on grayscaled frame
+	# 3) Contrast Limited Adaptive Histogram Equalization, this is used for noise reduction at night time
+	clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+	cl1 = clahe.apply(gray)
+
+	# 4) do edge detection on grayscaled frame
 	edges = cv2.Canny(gray,50,70)
 	edges = ~edges
 
-	# 4) blur detected edges
+	# 5) blur detected edges
 	blur = cv2.bilateralFilter(cv2.blur(edges,(21,21), 100),9,200,200)
 
-	# 5) apply threshold to frame: depending on pixel value, an array of 1s and 0s is created
+	# 6) apply threshold to frame: depending on pixel value, an array of 1s and 0s is created
 	_, threshold = cv2.threshold(blur,230,255,cv2.THRESH_BINARY)
 	# only apply to masked area
 	t = cv2.bitwise_and(threshold,threshold,mask = area_mask)
