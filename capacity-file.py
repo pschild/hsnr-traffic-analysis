@@ -99,10 +99,8 @@ while 1:
 		print "second={}, min={}, avg={}".format(countedSeconds, min, avg)
 		resetValues()
 
-	# 2) convert current frame to gray
+	# 2) convert current frame to gray and improve contrast with CLAHE (Contrast Limited Adaptive Histogram Equalization)
 	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-	# 3) Contrast Limited Adaptive Histogram Equalization, this is used for noise reduction at night time
 	clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
 	cl1 = clahe.apply(gray)
 
