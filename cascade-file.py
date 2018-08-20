@@ -10,11 +10,11 @@ frameCounter = 0
 
 #AREA1 = [[73,62], [153,62], [637,330], [637,418], [528,419]]
 #AREA2 = [[2,64], [50,63], [474,420], [226,419], [3, 93]]
-AREA1 = [[268,354], [519,436], [403,632], [15,632]]
+AREA1 = [[252,213], [238,238], [626,365], [632,289]]
 
 car_cascade = cv2.CascadeClassifier('../cars.xml')
 
-cap = cv2.VideoCapture("../traffic_sim.mp4")
+cap = cv2.VideoCapture("../autobahn.mp4")
 videoFps = cap.get(cv2.CAP_PROP_FPS)
 
 def logToFile(second, areaId, carCount):
