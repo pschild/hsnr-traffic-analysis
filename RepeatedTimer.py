@@ -1,3 +1,5 @@
+# based on https://stackoverflow.com/a/13151299/5276055
+
 import threading 
 import time
 
